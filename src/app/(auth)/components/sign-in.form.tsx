@@ -8,8 +8,15 @@ import Link from "next/link";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "@/lib/firebase";
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
 const SignInForm = () => {
+
+  const [isLoading, setisLoading] = useState<boolean>(false);
+
   /* ======== Form Schema ======== */
 
   const formSchema = z.object({
@@ -39,8 +46,16 @@ const SignInForm = () => {
   const { errors } = formState;
 
   /* ======== Sign In ======== */
-  const onSubmit = (user: z.infer<typeof formSchema>) => {
-    console.log(user);
+  const onSubmit = async (user: z.infer<typeof formSchema>) => {
+
+    setisLoading(true);
+    try {
+      let res = await signIn(user);
+    } catch (error: any) {
+      toast.error(error.message, {duration: 3000});
+    } finally {
+      setisLoading(false);
+    }
   };
 
   return (
@@ -87,7 +102,12 @@ const SignInForm = () => {
           </Link>
 
           {/* ======== Submit ======== */}
-          <Button type="submit">Iniciar Sesión</Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && (
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/>
+            )}
+            Iniciar Sesión
+            </Button>
         </div>
       </form>
 
